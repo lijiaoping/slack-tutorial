@@ -7,8 +7,8 @@ const generateCode = () => {
     { length: 6 },
     () => "0123456789abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 36)]
   ).join("");
-  console.log( code);
-  
+  console.log(code);
+
   return code;
 };
 
@@ -51,7 +51,7 @@ export const get = query({
       .query("members")
       .withIndex("by_user_id", (q) => q.eq("userId", userId))
       .collect();
-      /* 根据members 存储的workspaceId 查询 workspace*/
+    /* 根据members 存储的workspaceId 查询 workspace*/
     const workspaceIds = members.map((members) => members.workspaceId);
     const workspaces = [];
     for (const workspaceId of workspaceIds) {
@@ -81,5 +81,65 @@ export const getById = query({
       .unique();
     if (!member) return null;
     return await ctx.db.get(args.id);
+  },
+});
+export const update = mutation({
+  args: {
+    id: v.id("workspaces"),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // 当前登录用户的ID
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("当前用户无权限");
+    }
+    /*根据当前登录用户id 工作区id查询指定的成员*/
+    const member = await ctx.db
+      .query("members")
+      .withIndex("by_workspace_id_user_id", (q) =>
+        q.eq("workspaceId", args.id).eq("userId", userId)
+      )
+      .unique();
+    if (!member || member.role !== "admin") {
+      throw new Error("当前用户无权限");
+    }
+    await ctx.db.patch(args.id, {
+      name: args.name,
+    });
+    return args.id;
+  },
+});
+export const remove = mutation({
+  args: {
+    id: v.id("workspaces"),
+  },
+  handler: async (ctx, args) => {
+    // 当前登录用户的ID
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("当前用户无权限");
+    }
+    /*根据当前登录用户id 工作区id查询指定的成员*/
+    const member = await ctx.db
+      .query("members")
+      .withIndex("by_workspace_id_user_id", (q) =>
+        q.eq("workspaceId", args.id).eq("userId", userId)
+      )
+      .unique();
+    if (!member || member.role !== "admin") {
+      throw new Error("当前用户无权限");
+    }
+    // 删除workspace(工作区同时删除所有的创建的(members))
+    const [members] = await Promise.all([
+      ctx.db
+        .query("members")
+        .withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id)).collect(),
+    ]);
+    for (const member of members) {
+      await ctx.db.delete(member._id)
+    }
+    await ctx.db.delete(args.id);
+    return args.id;
   },
 });
