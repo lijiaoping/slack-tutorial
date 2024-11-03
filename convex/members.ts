@@ -2,9 +2,9 @@ import { v } from "convex/values";
 import { query, QueryCtx } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Id } from "./_generated/dataModel";
-const populateUser = (ctx:QueryCtx,userId: Id<"users">) => {
-  return ctx.db.get(userId)
-}
+const populateUser = (ctx: QueryCtx, userId: Id<"users">) => {
+  return ctx.db.get(userId);
+};
 // 获取用户信息
 export const get = query({
   args: { workspaceId: v.id("workspaces") },
@@ -22,15 +22,20 @@ export const get = query({
     if (!member) {
       return [];
     }
-    const data = await ctx.db.query("members").withIndex("by_workspace_id",(q) => q.eq("workspaceId",args.workspaceId)).collect();
+    const data = await ctx.db
+      .query("members")
+      .withIndex("by_workspace_id", (q) =>
+        q.eq("workspaceId", args.workspaceId)
+      )
+      .collect();
     const members = [];
     for (const member of data) {
-      const user= await populateUser(ctx,member.userId);// 获取用户信息
-      if(user) {
+      const user = await populateUser(ctx, member.userId); // 获取用户信息
+      if (user) {
         members.push({
           ...member,
-          user
-        })
+          user,
+        });
       }
     }
     return members;

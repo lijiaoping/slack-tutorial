@@ -9,6 +9,7 @@ import {
 import { useGetMember } from "@/app/features/members/api/use-get-member";
 import { useWorkspaceId } from "@/app/hooks/use-workspace-id";
 import { UseGetChannel } from "@/app/features/channels/api/use-get-channels";
+import { useCreateChannelModal } from "@/app/features/channels/store/use-create-channel-modal";
 
 import { useGetWorkspace } from "@/app/features/workspaces/api/use-get-wrokspace";
 import { useCurrentMember } from "@/app/features/members/api/use-current-member";
@@ -18,7 +19,10 @@ import WorkspaceHeader from "@/app/workspace/[workspaceId]/workspace-header";
 import { WorkspaceSection } from "@/app/workspace/[workspaceId]/workspace-section";
 import { UserItem } from "@/app/workspace/[workspaceId]/user-item";
 
+
 const WorkspaceSidebar = () => {
+  const [_open, setOpen] = useCreateChannelModal();
+
   const workspaceId = useWorkspaceId();
   const { data: member, isLoading: memberLoading } = useCurrentMember({
     workspaceId,
@@ -57,7 +61,7 @@ const WorkspaceSidebar = () => {
         <SidebarItem label="线程" icon={MessageSquareText} id="threads" />
         <SidebarItem label="Drafts & Sent" icon={SendHorizonal} id="drafts" />
       </div>
-      <WorkspaceSection label="线程" hint="创建新线程" onNew={() => {}}>
+      <WorkspaceSection label="线程" hint="创建新线程" onNew={member.role === "admin" ?() => setOpen(true) : undefined}>
         {channels?.map((item) => (
           <SidebarItem
             key={item._id}
