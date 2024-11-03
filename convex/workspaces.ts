@@ -29,12 +29,17 @@ export const create = mutation({
       userId,
       joinCode,
     });
-    //创建 用户
+    //创建 成员
     await ctx.db.insert("members", {
       userId,
       workspaceId,
       role: "admin",
     });
+     //创建 频道
+    await ctx.db.insert("channels",{
+      name: "general",
+      workspaceId
+    })
     return workspaceId;
   },
 });

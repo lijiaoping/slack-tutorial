@@ -18,6 +18,10 @@ const schema = defineSchema({
     .index("by_workspace_id", ["workspaceId"])
     .index("by_workspace_id_user_id", ["workspaceId", "userId"]),
   //根据Id优化查询
+  channels: defineTable({ //频道
+    name: v.string(),
+    workspaceId: v.id("workspaces")
+  }).index("by_workspace_id",["workspaceId"]),
 });
 
 export default schema;
