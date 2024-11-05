@@ -5,7 +5,7 @@ import { Id } from "./_generated/dataModel";
 const populateUser = (ctx: QueryCtx, userId: Id<"users">) => {
   return ctx.db.get(userId);
 };
-// 获取用户信息
+// 获取用户成员信息
 export const get = query({
   args: { workspaceId: v.id("workspaces") },
   handler: async (ctx, args) => {
